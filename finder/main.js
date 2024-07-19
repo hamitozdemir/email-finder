@@ -1,8 +1,7 @@
 
 search = () => {
-	// fetch_ids();
-	fetch_mails();
-
+	fetch_ids();
+	// fetch_mails();
 
 };
 
@@ -22,6 +21,12 @@ fetch_ids = () => {
 			console.log(typeof(id_list[0])) // object
 			console.log(typeof(id_list[0].textContent)) // string
 	
+			let id_list_strings = id_list.map((i) => {return i.textContent}); // map text content (ids only) to a new array
+			console.log(id_list_strings);
+			// return id_list_strings; can't return since these are async
+			// display_results(id_list_strings.join(', '));
+
+			console.log(splice_ids_array(id_list_strings));
 		});
 };
 
@@ -64,5 +69,30 @@ fetch_mails = () => {
 		console.log(corresp_list);
 		console.log(contrib_list);
 
+		
+
 	});
 };
+
+display_results = (text) => {
+	document.getElementById('result').innerHTML = text;
+};
+
+// split ids array into manageable chunks
+splice_ids_array = (arr) => {
+	let split_arr = []
+
+	let size = 6; // TODO: check performance difference and change accordingly
+	for (let i = 0; i < arr.length; i += size) {
+		const chunk = arr.slice(i, i + size);
+		split_arr.push(chunk);
+	};
+
+	console.log(split_arr);
+	return split_arr;
+}
+
+	// TODO: have ability to re-try connection if unable to reach for a chunk
+	// also have the option to re-try connection on main IDs fetch
+	// clear functionality for output
+	// on each call append the list of e-mails and info into a different div, spawning on top, so prepend and re-draw? look into .insertAdjacentHTML (https://stackoverflow.com/a/22260849/4085881)
