@@ -4,3 +4,9 @@
 	width: 50%;
 	padding: 10px;
 }
+
+.error {
+	color: crimson;
+	/* background-color: aliceblue; */
+	font-weight: bold;
+}

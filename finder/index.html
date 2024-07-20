@@ -21,10 +21,13 @@
 		<input type='text' id='author' name='author' placeholder='Author' />
 		<input type='text' id='extra' name='extra' placeholder='Keywords (Optional)' />
 		<button onclick='search()'>Search</button>
+		<button onclick='clear()'>Clear</button>
 	</div>
-	<div class='center' id='result'>
-
-	</div>
+	<div class='center error' id='error'></div>
+	<div class='center' id='found-ids'></div>
+	<div class='center' id='look-through'></div>
+	<div class='center' id='actions-buttons'></div>
+	<div class='center' id='results'></div>
 
 
 	<!-- https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=Fumihito%20Hirai[Author]+gastroenterology 
