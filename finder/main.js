@@ -1,15 +1,17 @@
 
 current_ids = []; // global because needs to assign in fetch
 current_cursor = 1; // current index + 1 of current_ids (which will be accessed on user input)
+current_author = ''; // global author to use for getting e-mail parents
 
 search = () => {
-	let author = document.getElementById('author').value;
+	let author = document.getElementById('author').value; // TODO: strip of extra white space leading, preceding or inbetween
 	if (author == '') {
 		display_results('error', 'author name required.');
 		return 1;
 	} else {
 		display_results('error', ''); // clear above error
 	}
+	current_author = author
 	let extra = document.getElementById('extra').value;
 	console.log(author);
 	console.log(extra);
@@ -69,52 +71,39 @@ fetch_mails = (strung_ids) => {
 		const doc = parser.parseFromString(text, 'text/xml');
 		let xmldoc = doc.documentElement
 
+		// TODO: i think, to get pubmed id directly, requires here that i split by <article> into each elem, then gather emails under those into a dictionary or an array
+
 		let emails_arr_html_col = xmldoc.getElementsByTagName('email')
 		let emails_list = Array.from(emails_arr_html_col);
+		console.log('email list')
 		console.log(emails_list)
-		// corresp or contrib 
-		// corresp: direct contact info under author information
-		// contrib: additional mails listed under contributor information
 
-		let corresp_list = [] // corresp>> "information", email
-		let contrib_list = [] // contrib>> name>>surname,givenname, address>>email
-		let contrib_list_one_level = [] // contrib>> name, email
-		let contrib_list_one_level_p = [] // p>> "info", email
-		// FIXME: getting out of hand
-
-		emails_list.forEach(elem => {
-			if (elem.parentNode.nodeName == 'corresp') {
-				corresp_list.push(elem.parentNode);
-			} else if (elem.parentNode.nodeName == 'contrib') { // contrib>> name, email
-					contrib_list_one_level.push(elem.parentNode);
-			} else if (elem.parentNode.nodeName == 'p') { // p>> "info", email
-				contrib_list_one_level_p.push(elem.parentNode);
-			} else { // contrib>> name>>surname,givenname, address>>email
-				contrib_list.push(elem.parentNode.parentNode);
-			}
-		});
-
-		console.log(corresp_list);
-		console.log(contrib_list);
-		console.log(contrib_list_one_level);
-		console.log(contrib_list_one_level_p);
+		// FIXME: not used right now
+		let mail_list = [] // new list to hold all profiles?
+		let parent_list = [] // mail parent list for lefthand side
+		// TODO: also add pubmed ids with clickable links here
 
 		let output = '<table class=\'results-table\'>';
-		corresp_list.forEach(elem => {
-			output += get_corresp_line(elem);
+		emails_list.forEach(elem => {
+			// if parent has current_author split name? reverse name? just has name?
+			let parent_elem = null;
+			// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
+			if (elem.parentNode.innerHTML.includes(current_author)) {
+				parent_elem = elem.parentNode;
+			} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
+				parent_elem = elem.parentNode.parentNode;
+			} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
+				parent_elem = elem.parentNode.parentNode.parentNode;
+			} else {
+				// output += get_no_author_line();
+				// TODO: consider adding "no mail for this person" line one way or another somehow prettily
+				// printing a line for every non-existent mail is just clutter at the moment
+			}
+			if (parent_elem) {
+				output += get_mail_line(elem, parent_elem);
+			}
 		});
-		contrib_list.forEach(elem => {
-			output += get_contrib_line(elem);
-		});
-		contrib_list_one_level.forEach(elem => {
-			output += get_contrib_line_one_level(elem);
-		});
-		contrib_list_one_level_p.forEach(elem => {
-			output += get_contrib_line_one_level_p(elem);
-		});
-		output += '</table>'; // TODO: possibly put this in a div here for better readability when adding multiple tables?
-
-		// TODO: change this with insertAdjacentHTML to prepend
+		output += '</table>';
 		document.getElementById('results').innerHTML += output;
 	});
 };
@@ -157,38 +146,21 @@ access_next_set_of_ids = () => {
 	display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
 };
 
-// corresp obj>> "information", email
-get_corresp_line = (corresp) => {
-	// TODO: possibly split last child initially, and give the rest of the info to first cell, instead of duplicate email
-	return `<tr class='corresp-line'>
-		<td>${corresp.innerHTML}</td>
-		<td>${corresp.lastElementChild.innerHTML}</td>
+// args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent
+get_mail_line = (mail, parent_elem) => {
+	// TODO: possibly remove mail from parent for clearer display and removing repetition?
+	return `<tr class='mail-line'>
+		<td>${parent_elem.innerHTML}</td>
+		<td>${mail.innerHTML}</td>
 	</tr>`;
 };
 
-// contrib>> name>>surname,givenname, address>>email
-// FIXME: need more samples for fixing
-get_contrib_line = (contrib) => {
-	return `<tr class='contrib-line'>
-		<td>${contrib.children[0].innerHTML}</td>
-		<td>${contrib.lastChild.innerHTML}</td>
+// unused for printing a line for when parent object with current author's name isn't identified
+get_no_author_line = () => {
+	return `<tr class='no-mail-line error'>
+		<td>No mail for ${current_author}</td>
+		<td></td>
 	</tr>`;
-};
-
-// contrib>> name, email
-get_contrib_line_one_level = (contrib) => {
-	return `<tr class='contrib-line-one-level'>
-		<td>${contrib.children[0].innerHTML}</td>
-		<td>${contrib.children[1].innerHTML}</td>
-	</tr>`;
-};
-
-// p>> "info", email
-get_contrib_line_one_level_p = (contrib) => {
-	return `<tr class='contrib-line-one-level-p'>
-	<td>${contrib.childNodes[0].nodeValue}</td>
-	<td>${contrib.lastChild.innerHTML}</td>
-</tr>`;
 };
 
 clear = () => {
