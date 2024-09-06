@@ -36,6 +36,13 @@ fetch_ids = (author, extra) => {
 				display_results('error', '');
 				const parser = new DOMParser();
 				const doc = parser.parseFromString(text, 'text/xml');
+
+				let count = parseInt(doc.documentElement.childNodes[0].innerHTML);
+				if (count <= 0) {
+					display_results('error', '0 results found.');
+					return 1;
+				}
+
 				let id_arr_html_col = doc.documentElement.childNodes[3].children
 		
 				let id_list = Array.from(id_arr_html_col);
