@@ -28,50 +28,45 @@ fetch_ids = (author, extra) => {
 		// let url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Fumihito%20Hirai[Author]+gastroenterology';
 		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=${author}[Author]+${extra}`;
 	
-		try {
-			fetch(url)
-			.then(handle_connection_error)
-			.then((response) => response.text())
-			.then((text) => {
-				display_results('error', '');
-				const parser = new DOMParser();
-				const doc = parser.parseFromString(text, 'text/xml');
+		fetch(url)
+		.then(handle_connection_error)
+		.then((response) => response.text())
+		.then((text) => {
+			display_results('error', '');
+			const parser = new DOMParser();
+			const doc = parser.parseFromString(text, 'text/xml');
 
-				let count = parseInt(doc.documentElement.childNodes[0].innerHTML);
-				if (count <= 0) {
-					display_results('error', '0 results found.');
-					return 1;
-				}
+			let count = parseInt(doc.documentElement.childNodes[0].innerHTML);
+			if (count <= 0) {
+				display_results('error', '0 results found.');
+				return 1;
+			}
 
-				let id_arr_html_col = doc.documentElement.childNodes[3].children
-		
-				let id_list = Array.from(id_arr_html_col);
-				console.log(id_list) // Id objects
-				console.log(id_list[0].textContent) // id as string stripped from <Id> </Id>
-				console.log(typeof(id_list[0])) // object
-				console.log(typeof(id_list[0].textContent)) // string
-		
-				let id_list_strings = id_list.map((i) => {return i.textContent}); // map text content (ids only) to a new array
-				console.log(id_list_strings);
-				// return id_list_strings; can't return since these are async
-				// display_results(id_list_strings.join(', '));
+			let id_arr_html_col = doc.documentElement.childNodes[3].children
+	
+			let id_list = Array.from(id_arr_html_col);
+			console.log(id_list) // Id objects
+			console.log(id_list[0].textContent) // id as string stripped from <Id> </Id>
+			console.log(typeof(id_list[0])) // object
+			console.log(typeof(id_list[0].textContent)) // string
+	
+			let id_list_strings = id_list.map((i) => {return i.textContent}); // map text content (ids only) to a new array
+			console.log(id_list_strings);
+			// return id_list_strings; can't return since these are async
+			// display_results(id_list_strings.join(', '));
 
-				current_ids = splice_ids_array(id_list_strings);
-				console.log(id_list_strings.length);
-				console.log(current_ids.length);
-				console.log(current_ids[0]);
-				display_results('found-ids', `${id_list_strings.length} articles found.`);
-				display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
-				draw_actions_buttons();
-			}).catch((error) => {
-				console.log('CATCH FETCH IDS ERROR:');
-				console.log(error);
-				display_results('error', 'connection error. re-try please!');
-			});
-		} catch (error) {
+			current_ids = splice_ids_array(id_list_strings);
+			console.log(id_list_strings.length);
+			console.log(current_ids.length);
+			console.log(current_ids[0]);
+			display_results('found-ids', `${id_list_strings.length} articles found.`);
+			display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
+			draw_actions_buttons();
+		}).catch((error) => {
+			console.log('CATCH FETCH IDS ERROR:');
 			console.log(error);
-			//display_results('error', 'connection error. re-try please!');
-		}
+			display_results('error', 'connection error. re-try please!');
+		});
 };
 
 // @args: id array passed as joined string with ','
