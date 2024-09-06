@@ -115,7 +115,8 @@ fetch_mails = (strung_ids) => {
 			}
 		});
 		output += '</table>';
-		document.getElementById('results').innerHTML += output;
+		// newer results gets prepended to top
+		document.getElementById('results').insertAdjacentHTML('afterbegin', output);
 	}).catch((error) => {
 		console.log('CATCH FETCH MAILS ERROR:');
 		console.log(error);
