@@ -52,6 +52,10 @@ fetch_ids = () => {
 				display_results('found-ids', `${id_list_strings.length} articles found.`);
 				display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
 				draw_actions_buttons();
+			}).catch((error) => {
+				console.log('CATCH FETCH IDS ERROR:');
+				console.log(error);
+				display_results('error', 'connection error. re-try please!');
 			});
 		} catch (error) {
 			console.log(error);
@@ -65,6 +69,7 @@ fetch_mails = (strung_ids) => {
 	let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${strung_ids}&rettype=xml&retmode=xml`
 	
 	fetch(url)
+	.then(handle_connection_error)
 	.then((response) => response.text())
 	.then((text) => {
 		const parser = new DOMParser();
@@ -83,7 +88,9 @@ fetch_mails = (strung_ids) => {
 		let parent_list = [] // mail parent list for lefthand side
 		// TODO: also add pubmed ids with clickable links here
 
-		let output = '<table class=\'results-table\'>';
+		let output = `<table class='results-table'>
+		<tr><th>details</th><th>mail</th></tr>
+		`;
 		emails_list.forEach(elem => {
 			// if parent has current_author split name? reverse name? just has name?
 			let parent_elem = null;
@@ -105,6 +112,11 @@ fetch_mails = (strung_ids) => {
 		});
 		output += '</table>';
 		document.getElementById('results').innerHTML += output;
+	}).catch((error) => {
+		console.log('CATCH FETCH MAILS ERROR:');
+		console.log(error);
+		display_results('error', 'connection error. re-try please!');
+		dial_back_to_previous_set_of_ids();
 	});
 };
 
@@ -140,6 +152,17 @@ access_next_set_of_ids = () => {
 	// TODO: disable button on click and re-enable when fetch mails is complete?
 	fetch_mails(current_ids[current_cursor - 1].join(','));
 	current_cursor += 1;
+	update_mail_ids_related_ui_elems();
+};
+
+dial_back_to_previous_set_of_ids = () => { // FIXME: possibly not working? especially when spam clicking? needs more testing
+	current_cursor -= 1;
+	update_mail_ids_related_ui_elems();
+};
+
+// same functionality necessary in both functions in relation to moving current cursor and updating UI
+update_mail_ids_related_ui_elems = () => {
+	console.log(`cursor: ${current_cursor}`);
 	if (current_ids.length < current_cursor) {
 		document.getElementById('access-next-button').disabled = true;
 	}
@@ -170,7 +193,7 @@ clear = () => {
 handle_connection_error = (response) => {
 	if (!response.ok) {
 		display_results('error', 'connection error. re-try please!');
-		console.log(error); // FIXME: possibly this gets executed, but didn't have console.log for testing, so maybe display_results error just got overriden at the start of the rest of the functionality
+		console.log(error);
 		throw new Error(response.status);
 	}
 	return response;
