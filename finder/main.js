@@ -4,7 +4,9 @@ current_cursor = 1; // current index + 1 of current_ids (which will be accessed 
 current_author = ''; // global author to use for getting e-mail parents
 
 search = () => {
-	let author = document.getElementById('author').value; // TODO: strip of extra white space leading, preceding or inbetween
+	clear_ui(true);
+	let author = document.getElementById('author').value.replace(/\s+/g,' ').trim();
+	document.getElementById('author').value = author;
 	if (author == '') {
 		display_results('error', 'author name required.');
 		return 1;
@@ -12,17 +14,19 @@ search = () => {
 		display_results('error', ''); // clear above error
 	}
 	current_author = author
-	let extra = document.getElementById('extra').value;
+	let extra = document.getElementById('extra').value.replace(/\s+/g,' ').trim();
+	document.getElementById('extra').value = extra;
 	console.log(author);
 	console.log(extra);
 
-	fetch_ids();
+	fetch_ids(author, extra);
 	// fetch_mails();
 
 };
 
-fetch_ids = () => {
-		let url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Fumihito%20Hirai[Author]+gastroenterology';
+fetch_ids = (author, extra) => {
+		// let url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Fumihito%20Hirai[Author]+gastroenterology';
+		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=${author}[Author]+${extra}`;
 	
 		try {
 			fetch(url)
@@ -171,9 +175,8 @@ update_mail_ids_related_ui_elems = () => {
 
 // args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent
 get_mail_line = (mail, parent_elem) => {
-	// TODO: possibly remove mail from parent for clearer display and removing repetition?
 	return `<tr class='mail-line'>
-		<td>${parent_elem.innerHTML}</td>
+		<td>${parent_elem.innerHTML.replace(mail.innerHTML, '')}</td>
 		<td>${mail.innerHTML}</td>
 	</tr>`;
 };
@@ -186,8 +189,20 @@ get_no_author_line = () => {
 	</tr>`;
 };
 
-clear = () => {
-
+// keep_fields exception for clearing in search()
+clear_ui = (keep_fields = false) => {
+	if (!keep_fields) {
+		document.getElementById('author').value = '';
+		document.getElementById('extra').value = '';
+	}
+	current_ids = [];
+	current_cursor = 1;
+	current_author = '';
+	display_results('found-ids', '');
+	display_results('look-through', '');
+	display_results('actions-buttons', '');
+	display_results('results', '');
+	display_results('error', '');
 };
 
 handle_connection_error = (response) => {
