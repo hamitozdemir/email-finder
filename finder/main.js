@@ -80,40 +80,51 @@ fetch_mails = (strung_ids) => {
 		const doc = parser.parseFromString(text, 'text/xml');
 		let xmldoc = doc.documentElement
 
-		// TODO: i think, to get pubmed id directly, requires here that i split by <article> into each elem, then gather emails under those into a dictionary or an array
+		let articles_arr_html_col = xmldoc.getElementsByTagName('article')
+		let articles_list = Array.from(articles_arr_html_col);
+		console.log('articles list')
+		console.log(articles_list);
 
-		let emails_arr_html_col = xmldoc.getElementsByTagName('email')
-		let emails_list = Array.from(emails_arr_html_col);
-		console.log('email list')
-		console.log(emails_list)
+		let pmc_id_mails_ids = [];
+		let pmc_id_mails_mails = [];
+		console.log('articles mails?')
+		articles_list.forEach(element => {
+			let id = Array.from(element.getElementsByTagName('article-id'))[1].innerHTML; // FIXME: surely pmc id is always the second one, right? right???
+			let mails = Array.from(element.getElementsByTagName('email'));
+			// FIXME: could probably instead use a dictionary?
+			pmc_id_mails_ids.push(id);
+			pmc_id_mails_mails.push(mails);
 
-		// FIXME: not used right now
-		let mail_list = [] // new list to hold all profiles?
-		let parent_list = [] // mail parent list for lefthand side
-		// TODO: also add pubmed ids with clickable links here
+		});
 
 		let output = `<table class='results-table'>
-		<tr><th>details</th><th>mail</th></tr>
+		<tr><th>pmc</th><th>details</th><th>mail</th></tr>
 		`;
-		emails_list.forEach(elem => {
-			// if parent has current_author split name? reverse name? just has name?
-			let parent_elem = null;
-			// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
-			if (elem.parentNode.innerHTML.includes(current_author)) {
-				parent_elem = elem.parentNode;
-			} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
-				parent_elem = elem.parentNode.parentNode;
-			} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
-				parent_elem = elem.parentNode.parentNode.parentNode;
-			} else {
-				// output += get_no_author_line();
-				// TODO: consider adding "no mail for this person" line one way or another somehow prettily
-				// printing a line for every non-existent mail is just clutter at the moment
-			}
-			if (parent_elem) {
-				output += get_mail_line(elem, parent_elem);
-			}
-		});
+
+		for (let i = 0; i < pmc_id_mails_ids.length; i++) {
+			console.log(`idmailpairs${i}`);
+			console.log(pmc_id_mails_ids[i]);
+			pmc_id_mails_mails[i].forEach(elem => {
+				// if parent has current_author split name? reverse name? just has name?
+				let parent_elem = null;
+				// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
+				if (elem.parentNode.innerHTML.includes(current_author)) {
+					parent_elem = elem.parentNode;
+				} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
+					parent_elem = elem.parentNode.parentNode;
+				} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
+					parent_elem = elem.parentNode.parentNode.parentNode;
+				} else {
+					// output += get_no_author_line();
+					// TODO: consider adding "no mail for this person" line one way or another somehow prettily
+					// printing a line for every non-existent mail is just clutter at the moment
+				}
+				if (parent_elem) {
+					output += get_mail_line(elem, parent_elem, pmc_id_mails_ids[i]);
+				}
+			});
+		};
+
 		output += '</table>';
 		// newer results gets prepended to top
 		document.getElementById('results').insertAdjacentHTML('afterbegin', output);
@@ -155,6 +166,8 @@ access_next_set_of_ids = () => {
 	// when reaching length, disable button
 	// need to get current values here, then increment
 	// TODO: disable button on click and re-enable when fetch mails is complete?
+	// state machine with is_searching global var? that gets turned on on button clicks, disabling buttons in state machine, and off after fetches or errors
+	display_results('error', '');
 	fetch_mails(current_ids[current_cursor - 1].join(','));
 	current_cursor += 1;
 	update_mail_ids_related_ui_elems();
@@ -175,8 +188,9 @@ update_mail_ids_related_ui_elems = () => {
 };
 
 // args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent
-get_mail_line = (mail, parent_elem) => {
+get_mail_line = (mail, parent_elem, id) => {
 	return `<tr class='mail-line'>
+		<td><a href='https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${id}/' target='_blank'>${id}</a></td>
 		<td>${parent_elem.innerHTML.replace(mail.innerHTML, '')}</td>
 		<td>${mail.innerHTML}</td>
 	</tr>`;
