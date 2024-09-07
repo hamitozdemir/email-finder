@@ -20,8 +20,13 @@
 		<p class='center'>E-mail Finder</p>
 		<input type='text' id='author' name='author' placeholder='Author' />
 		<input type='text' id='extra' name='extra' placeholder='Keywords (Optional)' />
-		<button onclick='search()'>Search</button>
-		<button onclick='clear_ui()'>Clear</button>
+		<button class='waves-effect waves-light btn' onclick='search()'>Search</button>
+		<button class='waves-effect waves-light btn' onclick='clear_ui()'>Clear</button>
+		<br />
+		<label>
+			<input type='checkbox' id='author_only_check' checked />
+			<span>Show author mail only?</span>
+		</label>
 	</div>
 	<div class='center error' id='error'></div>
 	<div class='center' id='found-ids'></div>

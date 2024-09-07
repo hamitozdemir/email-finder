@@ -107,21 +107,26 @@ fetch_mails = (strung_ids) => {
 			console.log(`idmailpairs${i}`);
 			console.log(pmc_id_mails_ids[i]);
 			pmc_id_mails_mails[i].forEach(elem => {
-				// if parent has current_author split name? reverse name? just has name?
-				let parent_elem = null;
-				// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
-				if (elem.parentNode.innerHTML.includes(current_author)) {
-					parent_elem = elem.parentNode;
-				} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
-					parent_elem = elem.parentNode.parentNode;
-				} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
-					parent_elem = elem.parentNode.parentNode.parentNode;
+				if (document.getElementById('author_only_check').checked) {
+					// if parent has current_author split name? reverse name? just has name?
+					let parent_elem = null;
+					// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
+					if (elem.parentNode.innerHTML.includes(current_author)) {
+						parent_elem = elem.parentNode;
+					} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
+						parent_elem = elem.parentNode.parentNode;
+					} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
+						parent_elem = elem.parentNode.parentNode.parentNode;
+					} else {
+						// output += get_no_author_line();
+						// TODO: consider adding "no mail for this person" line one way or another somehow prettily
+						// printing a line for every non-existent mail is just clutter at the moment
+					}
+					if (parent_elem) {
+						output += get_mail_line(elem, parent_elem, pmc_id_mails_ids[i]);
+					}
 				} else {
-					// output += get_no_author_line();
-					// TODO: consider adding "no mail for this person" line one way or another somehow prettily
-					// printing a line for every non-existent mail is just clutter at the moment
-				}
-				if (parent_elem) {
+					parent_elem = elem.parentNode; // decent compromise to get some details in? trying to get parent's parent instead gets a ton of unnecessary text in to display, this only displays the person's name most of the time, but yeah, somewhat of a compromise
 					output += get_mail_line(elem, parent_elem, pmc_id_mails_ids[i]);
 				}
 			});
@@ -158,7 +163,7 @@ splice_ids_array = (arr) => {
 draw_actions_buttons = () => {
 	let div = document.getElementById('actions-buttons');
 	div.innerHTML = `
-	<button id='access-next-button' onclick='access_next_set_of_ids()'>Find!</button>
+	<button class='waves-effect waves-light btn' id='access-next-button' onclick='access_next_set_of_ids()'>Find!</button>
 
 	`
 	// change button text to re-try if pull is unsuccessful
@@ -177,6 +182,7 @@ access_next_set_of_ids = () => {
 
 dial_back_to_previous_set_of_ids = () => { // FIXME: possibly not working? especially when spam clicking? needs more testing
 	current_cursor -= 1;
+	// FIXME: if fails on first fetch (and last? length 1 fetch that is) doesn't re-enable button. if cursor is 1 possibly need to change related disable functionality under update_mail_ids_related_ui_elems(), well, rather re-enable with an else?
 	update_mail_ids_related_ui_elems();
 };
 
@@ -185,6 +191,8 @@ update_mail_ids_related_ui_elems = () => {
 	console.log(`cursor: ${current_cursor}`);
 	if (current_ids.length < current_cursor) {
 		document.getElementById('access-next-button').disabled = true;
+	} else { // possibly fixes fetch error at 1 and at length, not re-enabling the "find" button
+		document.getElementById('access-next-button').disabled = false;
 	}
 	display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
 };
@@ -236,3 +244,6 @@ handle_connection_error = (response) => {
 	// clear functionality for output
 	// on each call append the list of e-mails and info into a different div, spawning on top, so prepend and re-draw? look into .insertAdjacentHTML (https://stackoverflow.com/a/22260849/4085881)
 	// re-try in fetch itself a few times? before giving an option to re-try outside?
+
+	// checkbox to show all e-mails or only author-name (don't reset this one on clear)
+	// also add option? to search through pubmed as well, check how pubmed results are fetched, i guess two separate searches behind the scenes would make organising a lot easier. so same as what i have. probably have a separate array to hold pubmed ids on top of current_ids, and a separate cursor? possibly just use the same cursor but ... hmm... add lengths of both to cursor max limit? then going to second array (pubmed) subtract pmc array length?
