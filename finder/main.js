@@ -63,7 +63,7 @@ fetch_ids = (author, extra) => {
 			console.log(current_ids.length);
 			console.log(current_ids[0]);
 			display_results('found-ids', `${id_list_strings.length} articles found.`);
-			display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
+			display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
 			draw_actions_buttons();
 		}).catch((error) => {
 			console.log('CATCH FETCH IDS ERROR:');
@@ -152,7 +152,7 @@ fetch_mails = (strung_ids) => {
 							parent_elem = elem.parentNode;
 						} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
 							parent_elem = elem.parentNode.parentNode;
-						} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
+						} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) { // FIXME: possibly remove 3rd level parent?
 							parent_elem = elem.parentNode.parentNode.parentNode;
 						} else {
 							// output += get_no_author_line();
@@ -174,11 +174,13 @@ fetch_mails = (strung_ids) => {
 		output += '</table>';
 		// newer results gets prepended to top
 		document.getElementById('results').insertAdjacentHTML('afterbegin', output);
+		disable_find_button();
 	}).catch((error) => {
 		console.log('CATCH FETCH MAILS ERROR:');
 		console.log(error);
 		display_results('error', 'connection error. re-try please!');
 		dial_back_to_previous_set_of_ids();
+		disable_find_button();
 	});
 };
 
@@ -214,6 +216,7 @@ access_next_set_of_ids = () => {
 	// TODO: disable button on click and re-enable when fetch mails is complete?
 	// state machine with is_searching global var? that gets turned on on button clicks, disabling buttons in state machine, and off after fetches or errors
 	display_results('error', '');
+	disable_find_button(true);
 	fetch_mails(current_ids[current_cursor - 1].join(','));
 	current_cursor += 1;
 	update_mail_ids_related_ui_elems();
@@ -228,12 +231,7 @@ dial_back_to_previous_set_of_ids = () => { // FIXME: possibly not working? espec
 // same functionality necessary in both functions in relation to moving current cursor and updating UI
 update_mail_ids_related_ui_elems = () => {
 	console.log(`cursor: ${current_cursor}`);
-	if (current_ids.length < current_cursor) {
-		document.getElementById('access-next-button').disabled = true;
-	} else { // possibly fixes fetch error at 1 and at length, not re-enabling the "find" button
-		document.getElementById('access-next-button').disabled = false;
-	}
-	display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
+	display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
 };
 
 // args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent, id: pmc/pubmed id of the article
@@ -255,6 +253,18 @@ get_no_author_line = () => {
 		<td>No mail for ${current_author}</td>
 		<td></td>
 	</tr>`;
+};
+
+// disable find button while fetching mails, re-enable on completion or error
+disable_find_button = (disable = false) => {
+	document.getElementById('access-next-button').disabled = disable;
+	if (!disable) {
+		if (current_ids.length < current_cursor) {
+			document.getElementById('access-next-button').disabled = true;
+		} else {
+			document.getElementById('access-next-button').disabled = false;
+		}
+	}
 };
 
 // keep_fields exception for clearing in search()
