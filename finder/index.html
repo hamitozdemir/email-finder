@@ -16,23 +16,23 @@
 </head>
 
 <body>
-	<div class='center'>
-		<p class='center'>E-mail Finder</p>
-		<input type='text' id='author' name='author' placeholder='Author' />
-		<input type='text' id='extra' name='extra' placeholder='Keywords (Optional)' />
-		<button class='waves-effect waves-light btn' onclick='search()'>Search</button>
-		<button class='waves-effect waves-light btn' onclick='clear_ui()'>Clear</button>
+	<div class='center pad'>
+		<p class='center pad'>E-mail Finder</p>
+		<input type='text' id='author' class='pad' name='author' placeholder='Author' />
+		<input type='text' id='extra' class='pad' name='extra' placeholder='Keywords (Optional)' />
+		<button class='waves-effect waves-light btn margin' onclick='search()'>Search</button>
+		<button class='waves-effect waves-light btn margin' onclick='clear_ui()'>Clear</button>
 		<br />
-		<label>
+		<label class='margin'>
 			<input type='checkbox' id='author_only_check' checked />
 			<span>Show author mail only?</span>
 		</label>
 		<br />
-		<label>
+		<label class='margin'>
 			<input id='radio_pmc' name='db-radio' type='radio' value='pmc' checked />
 			<span>pmc</span>
 		</label>
-		<label>
+		<label class='margin'>
 			<input id='radio_pubmed' name='db-radio' type='radio' value='pubmed' />
 			<span>pubmed</span>
 		</label>
@@ -41,6 +41,10 @@
 	<div class='center' id='found-ids'></div>
 	<div class='center' id='look-through'></div>
 	<div class='center' id='actions-buttons'></div>
+	<br />
+	<div id='progress-bar' class='progress center invisible'>
+		<div class='indeterminate'></div>
+	</div>
 	<div class='center' id='results'></div>
 
 

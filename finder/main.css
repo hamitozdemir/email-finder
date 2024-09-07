@@ -2,11 +2,22 @@
 	text-align: center;
 	margin: auto;
 	width: 50%;
+}
+
+.pad {
 	padding: 10px;
+}
+
+.margin {
+	margin: 5px;
 }
 
 .error {
 	color: crimson;
 	/* background-color: aliceblue; */
 	font-weight: bold;
+}
+
+.invisible {
+	visibility: hidden;
 }

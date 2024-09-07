@@ -15,6 +15,7 @@ search = () => {
 	} else {
 		display_results('error', ''); // clear above error
 	}
+	display_progress_bar(true);
 	current_author = author
 	let extra = document.getElementById('extra').value.replace(/\s+/g,' ').trim();
 	document.getElementById('extra').value = extra;
@@ -30,7 +31,7 @@ search = () => {
 fetch_ids = (author, extra) => {
 		// let url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Fumihito%20Hirai[Author]+gastroenterology';
 		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&term=${author}[Author]+${extra}&retmax=200`;
-	
+
 		fetch(url)
 		.then(handle_connection_error)
 		.then((response) => response.text())
@@ -65,10 +66,12 @@ fetch_ids = (author, extra) => {
 			display_results('found-ids', `${id_list_strings.length} articles found.`);
 			display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
 			draw_actions_buttons();
+			display_progress_bar();
 		}).catch((error) => {
 			console.log('CATCH FETCH IDS ERROR:');
 			console.log(error);
 			display_results('error', 'connection error. re-try please!');
+			display_progress_bar();
 		});
 };
 
@@ -258,6 +261,7 @@ get_no_author_line = () => {
 // disable find button while fetching mails, re-enable on completion or error
 disable_find_button = (disable = false) => {
 	document.getElementById('access-next-button').disabled = disable;
+	display_progress_bar(disable);
 	if (!disable) {
 		if (current_ids.length < current_cursor) {
 			document.getElementById('access-next-button').disabled = true;
@@ -266,6 +270,15 @@ disable_find_button = (disable = false) => {
 		}
 	}
 };
+
+// show progress bar while searching and finding (when find button is disabled)
+display_progress_bar = (show = false) => {
+	if (show) {
+		document.getElementById('progress-bar').classList.remove('invisible');
+	} else {
+		document.getElementById('progress-bar').classList.add('invisible');
+	}
+}
 
 // keep_fields exception for clearing in search()
 clear_ui = (keep_fields = false) => {
@@ -281,6 +294,7 @@ clear_ui = (keep_fields = false) => {
 	display_results('actions-buttons', '');
 	display_results('results', '');
 	display_results('error', '');
+	display_progress_bar();
 };
 
 handle_connection_error = (response) => {
