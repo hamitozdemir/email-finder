@@ -18,29 +18,29 @@
 <body>
 	<div class='center pad'>
 		<h4 class='center pad no-pointer'>E-mail Finder</h4>
-		<input type='text' id='author' class='pad' name='author' placeholder='Author' />
-		<input type='text' id='extra' class='pad' name='extra' placeholder='Keywords (Optional)' />
+		<input type='text' id='author' class='writing pad' name='author' placeholder='Author' />
+		<input type='text' id='extra' class='writing pad' name='extra' placeholder='Keywords (Optional)' />
 		<button class='waves-effect waves-light btn margin' onclick='search()'>Search</button>
 		<button class='waves-effect waves-light btn margin' onclick='clear_ui()'>Clear</button>
 		<br />
 		<label class='margin'>
 			<input type='checkbox' id='author_only_check' checked />
-			<span>Show author mail only?</span>
+			<span class='writing'>Show author mail only?</span>
 		</label>
 		<br />
 		<label class='margin'>
 			<input id='radio_pmc' name='db-radio' type='radio' value='pmc' checked />
-			<span>PMC</span>
+			<span class='writing'>PMC</span>
 		</label>
 		<label class='margin'>
 			<input id='radio_pubmed' name='db-radio' type='radio' value='pubmed' />
-			<span>PubMed</span>
+			<span class='writing'>PubMed</span>
 		</label>
 	</div>
-	<div class='center error' id='error'></div>
-	<div class='center' id='found-ids'></div>
-	<div class='center' id='look-through'></div>
+	<div class='center writing-sub' id='found-ids'></div>
+	<div class='center writing-sub' id='look-through'></div>
 	<div class='center' id='actions-buttons'></div>
+	<div class='center error' id='error'></div>
 	<br />
 	<div id='progress-bar' class='progress center invisible'>
 		<div class='indeterminate'></div>

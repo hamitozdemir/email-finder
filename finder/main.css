@@ -1,3 +1,12 @@
+body {
+	background-image: url('impermanence.jpeg');
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	background-position: 50%;
+	color: #E1D7B7;
+	background-size: 115%;
+}
+
 .center {
 	text-align: center;
 	margin: auto;
@@ -14,6 +23,7 @@
 
 .error {
 	color: crimson;
+	text-shadow: 2px 2px 5px #F1F3C2;
 	/* background-color: aliceblue; */
 	font-weight: bold;
 }
@@ -24,4 +34,18 @@
 
 .no-pointer {
 	cursor: default;
+}
+
+.writing {
+	color: #E1D7B7;
+	text-shadow: 2px 2px 5px #7C93C3;
+}
+
+.writing-sub {
+	text-shadow: 2px 2px 5px black;
+}
+
+h4 {
+	color: #E1D7B7;
+	font-weight: bold;
 }

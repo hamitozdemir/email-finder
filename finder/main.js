@@ -10,7 +10,7 @@ search = () => {
 	let author = document.getElementById('author').value.replace(/\s+/g,' ').trim();
 	document.getElementById('author').value = author;
 	if (author == '') {
-		display_results('error', 'author name required.');
+		display_results('error', 'Author name required.');
 		return 1;
 	} else {
 		display_results('error', ''); // clear above error
@@ -106,6 +106,7 @@ fetch_mails = (strung_ids) => {
 
 		for (let i = 0; i < article_id_mails_list_ids.length; i++) {
 			article_id_mails_list_mails[i].forEach(elem => {
+				// FIXME: unlike pmc vs pubmed check, author_only_check is made on each call
 				if (document.getElementById('author_only_check').checked) {
 					// if parent has current_author split name? reverse name? just has name?
 					let parent_elem = null;
