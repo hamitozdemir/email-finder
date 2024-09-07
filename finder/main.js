@@ -111,6 +111,16 @@ fetch_mails = (strung_ids) => {
 					// if parent has current_author split name? reverse name? just has name?
 					let parent_elem = null;
 					// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
+
+					/* FIXME: works, sort of. 
+					- on 3rd level gets a ton of results
+					- on 2nd level, doesn't work better than just using name, gets name(s) without spaces in between
+					let split_author_name = current_author.split(' '); // assumes two names only? well, regex will just use two names in any length of a name
+					let reg = new RegExp(`${split_author_name[0]}.*${split_author_name[1]}|${split_author_name[1]}.*${split_author_name[0]}`)
+
+					if (reg.test(elem.parentNode.innerHTML)) {
+					*/
+
 					if (elem.parentNode.innerHTML.includes(current_author)) {
 						parent_elem = elem.parentNode;
 					} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
