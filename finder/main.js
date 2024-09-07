@@ -2,6 +2,8 @@
 current_ids = []; // global because needs to assign in fetch
 current_cursor = 1; // current index + 1 of current_ids (which will be accessed on user input)
 current_author = ''; // global author to use for getting e-mail parents
+is_pubmed_search = false; // global pubmed db switch, only gets assigned in search()
+
 
 search = () => {
 	clear_ui(true);
@@ -19,6 +21,7 @@ search = () => {
 	console.log(author);
 	console.log(extra);
 
+	is_pubmed_search = document.getElementById('radio_pubmed').checked; // only assign this on search click so it won't get confused for the rest of it if changed half-way through
 	fetch_ids(author, extra);
 	// fetch_mails();
 
@@ -26,7 +29,7 @@ search = () => {
 
 fetch_ids = (author, extra) => {
 		// let url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Fumihito%20Hirai[Author]+gastroenterology';
-		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=${author}[Author]+${extra}`;
+		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&term=${author}[Author]+${extra}&retmax=200`;
 	
 		fetch(url)
 		.then(handle_connection_error)
@@ -72,7 +75,7 @@ fetch_ids = (author, extra) => {
 // @args: id array passed as joined string with ','
 // e.g. 11079516,11068439,10050046
 fetch_mails = (strung_ids) => {
-	let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${strung_ids}&rettype=xml&retmode=xml`
+	let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&id=${strung_ids}&rettype=xml&retmode=xml`;
 	
 	fetch(url)
 	.then(handle_connection_error)
@@ -82,31 +85,48 @@ fetch_mails = (strung_ids) => {
 		const doc = parser.parseFromString(text, 'text/xml');
 		let xmldoc = doc.documentElement
 
-		let articles_arr_html_col = xmldoc.getElementsByTagName('article')
+		let article_tag = is_pubmed_search ? 'PubmedArticle' : 'article';
+
+		let articles_arr_html_col = xmldoc.getElementsByTagName(article_tag)
 		let articles_list = Array.from(articles_arr_html_col);
 		console.log('articles list')
 		console.log(articles_list);
 
-		let pmc_id_mails_ids = [];
-		let pmc_id_mails_mails = [];
+		let article_id_mails_list_ids = [];
+		let article_id_mails_list_mails = [];
 		console.log('articles mails?')
-		articles_list.forEach(element => {
-			let id = Array.from(element.getElementsByTagName('article-id'))[1].innerHTML; // FIXME: surely pmc id is always the second one, right? right???
-			let mails = Array.from(element.getElementsByTagName('email'));
+		articles_list.forEach(article => {
+			let id = '';
+			let mails = [];
+			if (is_pubmed_search) {
+				id = Array.from(article.getElementsByTagName('PMID'))[0].innerHTML;
+				let affiliations_list = Array.from(article.getElementsByTagName('Affiliation'));
+				affiliations_list.forEach(affiliation => {
+					if (affiliation.innerHTML.includes('@')) { // very primitive but there doesn't seem to bo many other options without an actual tag covering mails like pmc
+						mails.push(affiliation);
+					}
+				});
+			} else {
+				id = Array.from(article.getElementsByTagName('article-id'))[1].innerHTML; // FIXME: surely pmc id is always the second one, right? right???
+				mails = Array.from(article.getElementsByTagName('email'));
+			}
+			
 			// FIXME: could probably instead use a dictionary?
-			pmc_id_mails_ids.push(id);
-			pmc_id_mails_mails.push(mails);
+			article_id_mails_list_ids.push(id);
+			article_id_mails_list_mails.push(mails);
 
 		});
 
+		console.log('idmails');
+		console.log(article_id_mails_list_ids);
+		console.log(article_id_mails_list_mails);
+
 		let output = `<table class='results-table'>
-		<tr><th>pmc</th><th>details</th><th>mail</th></tr>
+		<tr><th>id</th><th>details</th><th>mail</th></tr>
 		`;
 
-		for (let i = 0; i < pmc_id_mails_ids.length; i++) {
-			console.log(`idmailpairs${i}`);
-			console.log(pmc_id_mails_ids[i]);
-			pmc_id_mails_mails[i].forEach(elem => {
+		for (let i = 0; i < article_id_mails_list_ids.length; i++) {
+			article_id_mails_list_mails[i].forEach(elem => {
 				if (document.getElementById('author_only_check').checked) {
 					// if parent has current_author split name? reverse name? just has name?
 					let parent_elem = null;
@@ -121,23 +141,32 @@ fetch_mails = (strung_ids) => {
 					if (reg.test(elem.parentNode.innerHTML)) {
 					*/
 
-					if (elem.parentNode.innerHTML.includes(current_author)) {
-						parent_elem = elem.parentNode;
-					} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
-						parent_elem = elem.parentNode.parentNode;
-					} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
-						parent_elem = elem.parentNode.parentNode.parentNode;
+					if (is_pubmed_search) {
+						let split_author_name = current_author.split(' '); // assumes two names only
+						let reg = new RegExp(`<LastName>${split_author_name[1]}</LastName>.*<ForeName>${split_author_name[0]}</ForeName>`);
+						if (reg.test(elem.parentNode.parentNode.innerHTML)) {
+							parent_elem = elem.parentNode.parentNode;
+						}
 					} else {
-						// output += get_no_author_line();
-						// TODO: consider adding "no mail for this person" line one way or another somehow prettily
-						// printing a line for every non-existent mail is just clutter at the moment
+						if (elem.parentNode.innerHTML.includes(current_author)) {
+							parent_elem = elem.parentNode;
+						} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
+							parent_elem = elem.parentNode.parentNode;
+						} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) {
+							parent_elem = elem.parentNode.parentNode.parentNode;
+						} else {
+							// output += get_no_author_line();
+							// TODO: consider adding "no mail for this person" line one way or another somehow prettily
+							// printing a line for every non-existent mail is just clutter at the moment
+						}
 					}
+
 					if (parent_elem) {
-						output += get_mail_line(elem, parent_elem, pmc_id_mails_ids[i]);
+						output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
 					}
 				} else {
 					parent_elem = elem.parentNode; // decent compromise to get some details in? trying to get parent's parent instead gets a ton of unnecessary text in to display, this only displays the person's name most of the time, but yeah, somewhat of a compromise
-					output += get_mail_line(elem, parent_elem, pmc_id_mails_ids[i]);
+					output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
 				}
 			});
 		};
@@ -161,7 +190,7 @@ display_results = (div_id, text) => {
 splice_ids_array = (arr) => {
 	let split_arr = []
 
-	let size = 6; // TODO: check performance difference and change accordingly
+	let size = 20; // TODO: check performance difference and change accordingly
 	for (let i = 0; i < arr.length; i += size) {
 		const chunk = arr.slice(i, i + size);
 		split_arr.push(chunk);
@@ -207,10 +236,14 @@ update_mail_ids_related_ui_elems = () => {
 	display_results('look-through', `Look through ${current_cursor}/${current_ids.length}?`);
 };
 
-// args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent
+// args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent, id: pmc/pubmed id of the article
 get_mail_line = (mail, parent_elem, id) => {
+	// TODO: perhaps add #full-view-affiliation-1 anchor for pubmed links?
+	let url = is_pubmed_search 
+		? `https://pubmed.ncbi.nlm.nih.gov/${id}/' target='_blank`
+		: `https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${id}/' target='_blank`;
 	return `<tr class='mail-line'>
-		<td><a href='https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${id}/' target='_blank'>${id}</a></td>
+		<td><a href='${url}'>${id}</a></td>
 		<td>${parent_elem.innerHTML.replace(mail.innerHTML, '')}</td>
 		<td>${mail.innerHTML}</td>
 	</tr>`;
