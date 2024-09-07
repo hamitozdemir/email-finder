@@ -19,17 +19,12 @@ search = () => {
 	current_author = author
 	let extra = document.getElementById('extra').value.replace(/\s+/g,' ').trim();
 	document.getElementById('extra').value = extra;
-	console.log(author);
-	console.log(extra);
 
 	is_pubmed_search = document.getElementById('radio_pubmed').checked; // only assign this on search click so it won't get confused for the rest of it if changed half-way through
 	fetch_ids(author, extra);
-	// fetch_mails();
-
 };
 
 fetch_ids = (author, extra) => {
-		// let url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pmc&term=Fumihito%20Hirai[Author]+gastroenterology';
 		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&term=${author}[Author]+${extra}&retmax=200`;
 
 		fetch(url)
@@ -47,22 +42,12 @@ fetch_ids = (author, extra) => {
 			}
 
 			let id_arr_html_col = doc.documentElement.childNodes[3].children
-	
 			let id_list = Array.from(id_arr_html_col);
-			console.log(id_list) // Id objects
-			console.log(id_list[0].textContent) // id as string stripped from <Id> </Id>
-			console.log(typeof(id_list[0])) // object
-			console.log(typeof(id_list[0].textContent)) // string
-	
 			let id_list_strings = id_list.map((i) => {return i.textContent}); // map text content (ids only) to a new array
-			console.log(id_list_strings);
 			// return id_list_strings; can't return since these are async
 			// display_results(id_list_strings.join(', '));
 
 			current_ids = splice_ids_array(id_list_strings);
-			console.log(id_list_strings.length);
-			console.log(current_ids.length);
-			console.log(current_ids[0]);
 			display_results('found-ids', `${id_list_strings.length} articles found.`);
 			display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
 			draw_actions_buttons();
@@ -70,7 +55,7 @@ fetch_ids = (author, extra) => {
 		}).catch((error) => {
 			console.log('CATCH FETCH IDS ERROR:');
 			console.log(error);
-			display_results('error', 'connection error. re-try please!');
+			display_results('error', 'Connection error. Re-try please!');
 			display_progress_bar();
 		});
 };
@@ -92,12 +77,9 @@ fetch_mails = (strung_ids) => {
 
 		let articles_arr_html_col = xmldoc.getElementsByTagName(article_tag)
 		let articles_list = Array.from(articles_arr_html_col);
-		console.log('articles list')
-		console.log(articles_list);
 
 		let article_id_mails_list_ids = [];
 		let article_id_mails_list_mails = [];
-		console.log('articles mails?')
 		articles_list.forEach(article => {
 			let id = '';
 			let mails = [];
@@ -113,19 +95,13 @@ fetch_mails = (strung_ids) => {
 				id = Array.from(article.getElementsByTagName('article-id'))[1].innerHTML; // FIXME: surely pmc id is always the second one, right? right???
 				mails = Array.from(article.getElementsByTagName('email'));
 			}
-			
 			// FIXME: could probably instead use a dictionary?
 			article_id_mails_list_ids.push(id);
 			article_id_mails_list_mails.push(mails);
-
 		});
 
-		console.log('idmails');
-		console.log(article_id_mails_list_ids);
-		console.log(article_id_mails_list_mails);
-
 		let output = `<table class='results-table'>
-		<tr><th>id</th><th>details</th><th>mail</th></tr>
+		<tr><th>ID</th><th>Details</th><th>Mail</th></tr>
 		`;
 
 		for (let i = 0; i < article_id_mails_list_ids.length; i++) {
@@ -157,13 +133,8 @@ fetch_mails = (strung_ids) => {
 							parent_elem = elem.parentNode.parentNode;
 						} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) { // FIXME: possibly remove 3rd level parent?
 							parent_elem = elem.parentNode.parentNode.parentNode;
-						} else {
-							// output += get_no_author_line();
-							// TODO: consider adding "no mail for this person" line one way or another somehow prettily
-							// printing a line for every non-existent mail is just clutter at the moment
 						}
 					}
-
 					if (parent_elem) {
 						output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
 					}
@@ -181,12 +152,13 @@ fetch_mails = (strung_ids) => {
 	}).catch((error) => {
 		console.log('CATCH FETCH MAILS ERROR:');
 		console.log(error);
-		display_results('error', 'connection error. re-try please!');
+		display_results('error', 'Connection error. Re-try please!');
 		dial_back_to_previous_set_of_ids();
 		disable_find_button();
 	});
 };
 
+// output text to various divs by id
 display_results = (div_id, text) => {
 	document.getElementById(div_id).innerHTML = text;
 };
@@ -202,33 +174,31 @@ splice_ids_array = (arr) => {
 	};
 
 	return split_arr;
-}
+};
 
 draw_actions_buttons = () => {
 	let div = document.getElementById('actions-buttons');
 	div.innerHTML = `
 	<button class='waves-effect waves-light btn' id='access-next-button' onclick='access_next_set_of_ids()'>Find!</button>
 
-	`
-	// change button text to re-try if pull is unsuccessful
+	`;
 };
 
+// on 'find' button press get the next set of mails depending on where cursor currently is, on fail dials back cursor
 access_next_set_of_ids = () => {
-	// when reaching length, disable button
-	// need to get current values here, then increment
-	// TODO: disable button on click and re-enable when fetch mails is complete?
-	// state machine with is_searching global var? that gets turned on on button clicks, disabling buttons in state machine, and off after fetches or errors
 	display_results('error', '');
 	disable_find_button(true);
+	find_button_label_to_retry();
 	fetch_mails(current_ids[current_cursor - 1].join(','));
 	current_cursor += 1;
 	update_mail_ids_related_ui_elems();
 };
 
+// if fetch fails on mail search, dial back cursor
 dial_back_to_previous_set_of_ids = () => { // FIXME: possibly not working? especially when spam clicking? needs more testing
 	current_cursor -= 1;
-	// FIXME: if fails on first fetch (and last? length 1 fetch that is) doesn't re-enable button. if cursor is 1 possibly need to change related disable functionality under update_mail_ids_related_ui_elems(), well, rather re-enable with an else?
 	update_mail_ids_related_ui_elems();
+	find_button_label_to_retry(true);
 };
 
 // same functionality necessary in both functions in relation to moving current cursor and updating UI
@@ -247,14 +217,6 @@ get_mail_line = (mail, parent_elem, id) => {
 		<td><a href='${url}'>${id}</a></td>
 		<td>${parent_elem.innerHTML.replace(mail.innerHTML, '')}</td>
 		<td>${mail.innerHTML}</td>
-	</tr>`;
-};
-
-// unused for printing a line for when parent object with current author's name isn't identified
-get_no_author_line = () => {
-	return `<tr class='no-mail-line error'>
-		<td>No mail for ${current_author}</td>
-		<td></td>
 	</tr>`;
 };
 
@@ -278,7 +240,18 @@ display_progress_bar = (show = false) => {
 	} else {
 		document.getElementById('progress-bar').classList.add('invisible');
 	}
-}
+};
+
+// switch 'find' button label to 're-try' on fail with red colour
+find_button_label_to_retry = (switch_to_retry = false) => {
+	if (switch_to_retry) {
+		document.getElementById('access-next-button').textContent = 'Re-try!';
+		document.getElementById('access-next-button').classList.add('red', 'darken-1');
+	} else {
+		document.getElementById('access-next-button').textContent = 'Find!';
+		document.getElementById('access-next-button').classList.remove('red', 'darken-1');
+	}
+};
 
 // keep_fields exception for clearing in search()
 clear_ui = (keep_fields = false) => {
@@ -299,18 +272,7 @@ clear_ui = (keep_fields = false) => {
 
 handle_connection_error = (response) => {
 	if (!response.ok) {
-		display_results('error', 'connection error. re-try please!');
-		console.log(error);
 		throw new Error(response.status);
 	}
 	return response;
 };
-
-	// TODO: have ability to re-try connection if unable to reach for a chunk
-	// also have the option to re-try connection on main IDs fetch
-	// clear functionality for output
-	// on each call append the list of e-mails and info into a different div, spawning on top, so prepend and re-draw? look into .insertAdjacentHTML (https://stackoverflow.com/a/22260849/4085881)
-	// re-try in fetch itself a few times? before giving an option to re-try outside?
-
-	// checkbox to show all e-mails or only author-name (don't reset this one on clear)
-	// also add option? to search through pubmed as well, check how pubmed results are fetched, i guess two separate searches behind the scenes would make organising a lot easier. so same as what i have. probably have a separate array to hold pubmed ids on top of current_ids, and a separate cursor? possibly just use the same cursor but ... hmm... add lengths of both to cursor max limit? then going to second array (pubmed) subtract pmc array length?

@@ -21,3 +21,7 @@
 .invisible {
 	visibility: hidden;
 }
+
+.no-pointer {
+	cursor: default;
+}
