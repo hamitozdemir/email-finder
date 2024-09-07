@@ -138,7 +138,7 @@ fetch_mails = (strung_ids) => {
 						output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
 					}
 				} else {
-					parent_elem = elem.parentNode; // decent compromise to get some details in? trying to get parent's parent instead gets a ton of unnecessary text in to display, this only displays the person's name most of the time, but yeah, somewhat of a compromise
+					parent_elem = is_pubmed_search ? elem.parentNode.parentNode : elem.parentNode; // decent compromise to get some details in? trying to get parent's parent instead gets a ton of unnecessary text in to display, this only displays the person's name most of the time, but yeah, somewhat of a compromise
 					output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
 				}
 			});
