@@ -25,39 +25,37 @@ search = () => {
 };
 
 fetch_ids = (author, extra) => {
-		let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&term=${author}[Author]+${extra}&retmax=200`;
+	let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&term=${author}[Author]+${extra}&retmax=200`;
 
-		fetch(url)
-		.then(handle_connection_error)
-		.then((response) => response.text())
-		.then((text) => {
-			display_results('error', '');
-			const parser = new DOMParser();
-			const doc = parser.parseFromString(text, 'text/xml');
+	fetch(url)
+	.then(handle_connection_error)
+	.then((response) => response.text())
+	.then((text) => {
+		display_results('error', '');
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(text, 'text/xml');
 
-			let count = parseInt(doc.documentElement.childNodes[0].innerHTML);
-			if (count <= 0) {
-				display_results('error', '0 results found.');
-				return 1;
-			}
+		let count = parseInt(doc.documentElement.childNodes[0].innerHTML);
+		if (count <= 0) {
+			display_results('error', '0 results found.');
+			return 1;
+		}
 
-			let id_arr_html_col = doc.documentElement.childNodes[3].children
-			let id_list = Array.from(id_arr_html_col);
-			let id_list_strings = id_list.map((i) => {return i.textContent}); // map text content (ids only) to a new array
-			// return id_list_strings; can't return since these are async
-			// display_results(id_list_strings.join(', '));
+		let id_arr_html_col = doc.documentElement.childNodes[3].children
+		let id_list = Array.from(id_arr_html_col);
+		let id_list_strings = id_list.map((i) => {return i.textContent}); // map text content (ids only) to a new array
 
-			current_ids = splice_ids_array(id_list_strings);
-			display_results('found-ids', `${id_list_strings.length} articles found.`);
-			display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
-			draw_actions_buttons();
-			display_progress_bar();
-		}).catch((error) => {
-			console.log('CATCH FETCH IDS ERROR:');
-			console.log(error);
-			display_results('error', 'Connection error. Re-try please!');
-			display_progress_bar();
-		});
+		current_ids = splice_ids_array(id_list_strings);
+		display_results('found-ids', `${id_list_strings.length} articles found.`);
+		display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
+		draw_actions_buttons();
+		display_progress_bar();
+	}).catch((error) => {
+		console.log('CATCH FETCH IDS ERROR:');
+		console.log(error);
+		display_results('error', 'Connection error. Re-try please!');
+		display_progress_bar();
+	});
 };
 
 // @args: id array passed as joined string with ','
@@ -196,7 +194,7 @@ access_next_set_of_ids = () => {
 };
 
 // if fetch fails on mail search, dial back cursor
-dial_back_to_previous_set_of_ids = () => { // FIXME: possibly not working? especially when spam clicking? needs more testing
+dial_back_to_previous_set_of_ids = () => {
 	current_cursor -= 1;
 	update_mail_ids_related_ui_elems();
 	find_button_label_to_retry(true);
@@ -204,7 +202,6 @@ dial_back_to_previous_set_of_ids = () => { // FIXME: possibly not working? espec
 
 // same functionality necessary in both functions in relation to moving current cursor and updating UI
 update_mail_ids_related_ui_elems = () => {
-	console.log(`cursor: ${current_cursor}`);
 	display_results('look-through', `Look through ${current_cursor} / ${current_ids.length}?`);
 };
 
@@ -216,7 +213,7 @@ get_mail_line = (mail, parent_elem, id) => {
 		: `https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${id}/' target='_blank`;
 	return `<tr class='mail-line'>
 		<td><a href='${url}'>${id}</a></td>
-		<td>${parent_elem.innerHTML.replace(mail.innerHTML, '')}</td>
+		<td>${truncate_details_text(parent_elem.innerHTML.replace(mail.innerHTML, ''))}</td>
 		<td>${mail.innerHTML}</td>
 	</tr>`;
 };
@@ -252,6 +249,11 @@ find_button_label_to_retry = (switch_to_retry = false) => {
 		document.getElementById('access-next-button').textContent = 'Find!';
 		document.getElementById('access-next-button').classList.remove('red', 'darken-1');
 	}
+};
+
+// truncate lengthy details so it doesn't cover the whole screen, given number of characters doesn't seem to work for some reaso— possibly it includes tags from xml?
+truncate_details_text = (details) => {
+	return details.length > 300 ? `${details.substring(0, 300)}...` : details;
 };
 
 // keep_fields exception for clearing in search()
