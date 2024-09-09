@@ -9,6 +9,7 @@ is_pubmed_search = false; // global pubmed db switch, only gets assigned in sear
 initial_binds = () => {
 	document.getElementById('author').addEventListener('keypress', (e) => input_enter_bind(e));
 	document.getElementById('extra').addEventListener('keypress', (e) => input_enter_bind(e));
+	display_results('tips', 'Reversing name order might get more results.');
 };
 
 // bind enter key to search for initial_binds()
@@ -19,7 +20,25 @@ input_enter_bind = (e) => {
 	}
 };
 
-// TODO: add reverse name button (with a rotating arrows emoji or something similar from materialize?) next to name field, if name is longer than 2 words, error output saying 'Can only reverse 2-word names automatically.' and if nothing entered 'Enter a name to reverse its order.'
+// reverse name order in author input field (only 2-word names)
+reverse = () => {
+	let author = document.getElementById('author').value.replace(/\s+/g,' ').trim();
+	document.getElementById('author').value = author;
+	if (author == '') {
+		display_results('error', 'Author name required for reversing its order.');
+		display_results('tips', 'Reversing name order might get more results.');
+		return 1;
+	}
+	display_results('error', '');
+	display_results('tips', '');
+
+	let split_author_name = author.split(' ');
+	if (split_author_name.length != 2) {
+		display_results('error', 'Can only reverse 2-word names automatically.');
+		return 1;
+	}
+	document.getElementById('author').value = `${split_author_name[1]} ${split_author_name[0]}`;
+};
 
 search = () => {
 	clear_ui(true);
@@ -28,10 +47,11 @@ search = () => {
 	if (author == '') {
 		display_results('error', 'Author name required.');
 		return 1;
-	} else {
-		display_results('error', ''); // clear above error
 	}
+	display_results('error', ''); // clear above error
+	display_results('tips', '');
 	display_progress_bar(true);
+
 	current_author = author
 	let extra = document.getElementById('extra').value.replace(/\s+/g,' ').trim();
 	document.getElementById('extra').value = extra;
@@ -298,6 +318,7 @@ clear_ui = (keep_fields = false) => {
 	display_results('actions-buttons', '');
 	display_results('results', '');
 	display_results('error', '');
+	display_results('tips', '');
 	display_progress_bar();
 };
 

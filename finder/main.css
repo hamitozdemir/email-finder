@@ -55,3 +55,9 @@ h4 {
 	font-style: italic;
 	text-shadow: 1px 1px 15px #F1F3C2;
 }
+
+.grayed-tips {
+	color: #E1D7B7;
+	font-style: italic;
+	text-shadow: 2px 2px 5px black;
+}

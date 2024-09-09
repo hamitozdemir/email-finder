@@ -11,6 +11,8 @@
 	<!-- materialize -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<!-- material icons -->
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 	<link rel='stylesheet' type='text/css' media='screen' href='main.css'>
 	<script src='main.js'></script>
@@ -18,11 +20,17 @@
 
 <body onload='initial_binds()'>
 	<div class='center pad'>
-		<h4 class='center pad no-pointer'>E-mail Finder</h4>
+		<h4 class='center pad no-pointer'>
+			<i class='material-icons'>mail</i>
+			E-mail Finder
+		</h4>
 		<input type='text' id='author' class='writing pad' name='author' placeholder='Author' />
 		<input type='text' id='extra' class='writing pad' name='extra' placeholder='Keywords (Optional)' />
 		<button class='waves-effect waves-light btn margin' onclick='search()'>Search</button>
 		<button class='waves-effect waves-light btn margin' onclick='clear_ui()'>Clear</button>
+		<button class='waves-effect waves-light btn margin' onclick='reverse()'>
+			<i class="material-icons">autorenew</i>
+		</button>
 		<br />
 		<label class='margin'>
 			<input type='checkbox' id='author_only_check' checked />
@@ -42,6 +50,7 @@
 	<div class='center writing-sub' id='look-through'></div>
 	<div class='center' id='actions-buttons'></div>
 	<div class='center error' id='error'></div>
+	<div class='center grayed-tips' id='tips'></div>
 	<br />
 	<div id='progress-bar' class='progress center invisible'>
 		<div class='indeterminate'></div>
