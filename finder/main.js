@@ -5,6 +5,20 @@ current_author = ''; // global author to use for getting e-mail parents
 is_pubmed_search = false; // global pubmed db switch, only gets assigned in search()
 
 
+// bind enter key to author/extra inputs
+initial_binds = () => {
+	document.getElementById('author').addEventListener('keypress', (e) => input_enter_bind(e));
+	document.getElementById('extra').addEventListener('keypress', (e) => input_enter_bind(e));
+};
+
+// bind enter key to search for initial_binds()
+input_enter_bind = (e) => {
+	if (e.key === 'Enter') {
+		e.preventDefault();
+		search();
+	}
+};
+
 search = () => {
 	clear_ui(true);
 	let author = document.getElementById('author').value.replace(/\s+/g,' ').trim();
@@ -102,6 +116,7 @@ fetch_mails = (strung_ids) => {
 		let output = `<table class='results-table'>
 		<tr><th>ID</th><th>Details</th><th>Mail</th></tr>
 		`;
+		// FIXME: let empty_output = output; // compare for empty output lines
 
 		for (let i = 0; i < article_id_mails_list_ids.length; i++) {
 			article_id_mails_list_mails[i].forEach(elem => {
@@ -122,6 +137,13 @@ fetch_mails = (strung_ids) => {
 					TODO: could possibly simply go for correct order with space and reverse order with space in between, just these two
 					*/
 					let split_author_name = current_author.split(' '); // assumes two names only
+
+					// TODO: check middle names, and multiple name people and try to include them, especially here in pubmed section
+					// also possibly for spanish, use first and -1th words as first name and last name?
+
+					// if length is more than 2, could get [0] at start space, and rest of the names with or in between; or the same thing in reverse order, could just pop first element to a first_name var and join rest with | so it can support any length
+					// would still require taking a look at pubmed tag formatting with multiple names
+
 					if (is_pubmed_search) {
 						let reg = new RegExp(`<LastName>${split_author_name[1]}</LastName>.*<ForeName>${split_author_name[0]}</ForeName>`);
 						if (reg.test(elem.parentNode.parentNode.innerHTML)) {
@@ -146,6 +168,8 @@ fetch_mails = (strung_ids) => {
 				}
 			});
 		};
+
+		// TODO: check here if output is empty_output, then append an empty line with somewhat of a grey writing saying 'no author mail was found' or something
 
 		output += '</table>';
 		// newer results gets prepended to top
