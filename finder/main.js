@@ -38,6 +38,7 @@ fetch_ids = (author, extra) => {
 		let count = parseInt(doc.documentElement.childNodes[0].innerHTML);
 		if (count <= 0) {
 			display_results('error', '0 results found.');
+			display_progress_bar();
 			return 1;
 		}
 
@@ -117,6 +118,8 @@ fetch_mails = (strung_ids) => {
 					let reg = new RegExp(`${split_author_name[0]}.*${split_author_name[1]}|${split_author_name[1]}.*${split_author_name[0]}`)
 
 					if (reg.test(elem.parentNode.innerHTML)) {
+
+					TODO: could possibly simply go for correct order with space and reverse order with space in between, just these two
 					*/
 
 					if (is_pubmed_search) {
