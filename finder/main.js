@@ -19,6 +19,8 @@ input_enter_bind = (e) => {
 	}
 };
 
+// TODO: add reverse name button (with a rotating arrows emoji or something similar from materialize?) next to name field, if name is longer than 2 words, error output saying 'Can only reverse 2-word names automatically.' and if nothing entered 'Enter a name to reverse its order.'
+
 search = () => {
 	clear_ui(true);
 	let author = document.getElementById('author').value.replace(/\s+/g,' ').trim();
@@ -127,15 +129,16 @@ fetch_mails = (strung_ids) => {
 					let split_author_name = current_author.split(' ');
 					let reg = null; // regex string to check for author name in forward or reverse order inside pubmed affiliation section or on pmc parents
 
+					// TODO: could probably split these regex into vars for ease of reading and to remove some repetition
 					if (split_author_name.length <= 2) {
 						reg = is_pubmed_search 
-						? new RegExp(`<LastName>${split_author_name[1]}</LastName>.*<ForeName>${split_author_name[0]}</ForeName>`) 
-						: new RegExp(`${split_author_name[0]} *${split_author_name[1]}|${split_author_name[1]} *${split_author_name[0]}`);
+						? new RegExp(`(<LastName>${split_author_name[1]}</LastName>(.|\n|\r)*<ForeName>${split_author_name[0]}</ForeName>)|(<LastName>${split_author_name[0]}</LastName>(.|\n|\r)*<ForeName>${split_author_name[1]}</ForeName>)`) 
+						: new RegExp(`(${split_author_name[0]} *${split_author_name[1]}|${split_author_name[1]} *${split_author_name[0]})|(<surname>${split_author_name[1]}</surname>(.|\n|\r)*<given-names>${split_author_name[0]}</given-names>)|(<surname>${split_author_name[0]}</surname>(.|\n|\r)*<given-names>${split_author_name[1]}</given-names>)`);
 					} else {
 						let first_name = split_author_name.shift();
 						reg = is_pubmed_search
-						? new RegExp(`<LastName>.*${split_author_name[split_author_name.length - 1]}</LastName>.*<ForeName>${first_name}.*</ForeName>`)
-						: new RegExp(`${first_name} *(${split_author_name.join('|')})|(${split_author_name.join('|')}) *${first_name}`);
+						? new RegExp(`(<LastName>.*${split_author_name[split_author_name.length - 1]}</LastName>(.|\n|\r)*<ForeName>${first_name}.*</ForeName>)|(<LastName>.*${first_name}</LastName>(.|\n|\r)*<ForeName>${split_author_name[split_author_name.length - 1]}.*</ForeName>)`)
+						: new RegExp(`(${first_name} *(${split_author_name.join('|')})|(${split_author_name.join('|')}) *${first_name})|(<surname>.*${split_author_name[split_author_name.length - 1]}</surname>(.|\n|\r)*<given-names>${first_name}.*</given-names>)|(<surname>.*${first_name}</surname>(.|\n|\r)*<given-names>${split_author_name[split_author_name.length - 1]}.*</given-names>)`);
 					}
 
 					if (is_pubmed_search) {
@@ -147,8 +150,6 @@ fetch_mails = (strung_ids) => {
 							parent_elem = elem.parentNode;
 						} else if (reg.test(elem.parentNode.parentNode.innerHTML)) {
 							parent_elem = elem.parentNode.parentNode;
-						} else if (reg.test(elem.parentNode.parentNode.parentNode.innerHTML)) { // FIXME: possibly remove 3rd level parent?
-							parent_elem = elem.parentNode.parentNode.parentNode;
 						}
 					}
 					if (parent_elem) {
