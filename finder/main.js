@@ -116,7 +116,7 @@ fetch_mails = (strung_ids) => {
 		let output = `<table class='results-table'>
 		<tr><th>ID</th><th>Details</th><th>Mail</th></tr>
 		`;
-		// FIXME: let empty_output = output; // compare for empty output lines
+		let empty_output = output; // compare for empty output lines and display 'no author mail' if no change is found (i.e. additions of mail lines)
 
 		for (let i = 0; i < article_id_mails_list_ids.length; i++) {
 			article_id_mails_list_mails[i].forEach(elem => {
@@ -169,7 +169,13 @@ fetch_mails = (strung_ids) => {
 			});
 		};
 
-		// TODO: check here if output is empty_output, then append an empty line with somewhat of a grey writing saying 'no author mail was found' or something
+		if (empty_output == output) {
+			output += `<tr class='mail-line'>
+				<td></td>
+				<td class='grayed-mail'>No author mail found, there may be non-author mail(s).</td>
+				<td></td>
+			</tr>`;
+		}
 
 		output += '</table>';
 		// newer results gets prepended to top

@@ -49,3 +49,9 @@ h4 {
 	color: #E1D7B7;
 	font-weight: bold;
 }
+
+.grayed-mail {
+	color: gray;
+	font-style: italic;
+	text-shadow: 1px 1px 15px #F1F3C2;
+}
