@@ -121,19 +121,19 @@ fetch_mails = (strung_ids) => {
 
 					TODO: could possibly simply go for correct order with space and reverse order with space in between, just these two
 					*/
-
+					let split_author_name = current_author.split(' '); // assumes two names only
 					if (is_pubmed_search) {
-						let split_author_name = current_author.split(' '); // assumes two names only
 						let reg = new RegExp(`<LastName>${split_author_name[1]}</LastName>.*<ForeName>${split_author_name[0]}</ForeName>`);
 						if (reg.test(elem.parentNode.parentNode.innerHTML)) {
 							parent_elem = elem.parentNode.parentNode;
 						}
 					} else {
-						if (elem.parentNode.innerHTML.includes(current_author)) {
+						let reg = new RegExp(`${split_author_name[0]} *${split_author_name[1]}|${split_author_name[1]} *${split_author_name[0]}`);
+						if (reg.test(elem.parentNode.innerHTML)) {
 							parent_elem = elem.parentNode;
-						} else if (elem.parentNode.parentNode.innerHTML.includes(current_author)) {
+						} else if (reg.test(elem.parentNode.parentNode.innerHTML)) {
 							parent_elem = elem.parentNode.parentNode;
-						} else if (elem.parentNode.parentNode.parentNode.innerHTML.includes(current_author)) { // FIXME: possibly remove 3rd level parent?
+						} else if (reg.test(elem.parentNode.parentNode.parentNode.innerHTML)) { // FIXME: possibly remove 3rd level parent?
 							parent_elem = elem.parentNode.parentNode.parentNode;
 						}
 					}
