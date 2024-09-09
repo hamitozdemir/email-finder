@@ -40,6 +40,7 @@ search = () => {
 
 fetch_ids = (author, extra) => {
 	let url = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=${is_pubmed_search ? 'pubmed' : 'pmc'}&term=${author}[Author]+${extra}&retmax=200`;
+	// TODO: possibly add retmax as a selectable variable 'number' input? on interface, defaulting to 200
 
 	fetch(url)
 	.then(handle_connection_error)
@@ -122,35 +123,26 @@ fetch_mails = (strung_ids) => {
 			article_id_mails_list_mails[i].forEach(elem => {
 				// FIXME: unlike pmc vs pubmed check, author_only_check is made on each call
 				if (document.getElementById('author_only_check').checked) {
-					// if parent has current_author split name? reverse name? just has name?
 					let parent_elem = null;
-					// TODO: possibly opt to use regex instead of includes for three-four-five word names, including any words? at least two words? or reverse-ordered names
+					let split_author_name = current_author.split(' ');
+					let reg = null; // regex string to check for author name in forward or reverse order inside pubmed affiliation section or on pmc parents
 
-					/* FIXME: works, sort of. 
-					- on 3rd level gets a ton of results
-					- on 2nd level, doesn't work better than just using name, gets name(s) without spaces in between
-					let split_author_name = current_author.split(' '); // assumes two names only? well, regex will just use two names in any length of a name
-					let reg = new RegExp(`${split_author_name[0]}.*${split_author_name[1]}|${split_author_name[1]}.*${split_author_name[0]}`)
-
-					if (reg.test(elem.parentNode.innerHTML)) {
-
-					TODO: could possibly simply go for correct order with space and reverse order with space in between, just these two
-					*/
-					let split_author_name = current_author.split(' '); // assumes two names only
-
-					// TODO: check middle names, and multiple name people and try to include them, especially here in pubmed section
-					// also possibly for spanish, use first and -1th words as first name and last name?
-
-					// if length is more than 2, could get [0] at start space, and rest of the names with or in between; or the same thing in reverse order, could just pop first element to a first_name var and join rest with | so it can support any length
-					// would still require taking a look at pubmed tag formatting with multiple names
+					if (split_author_name.length <= 2) {
+						reg = is_pubmed_search 
+						? new RegExp(`<LastName>${split_author_name[1]}</LastName>.*<ForeName>${split_author_name[0]}</ForeName>`) 
+						: new RegExp(`${split_author_name[0]} *${split_author_name[1]}|${split_author_name[1]} *${split_author_name[0]}`);
+					} else {
+						let first_name = split_author_name.shift();
+						reg = is_pubmed_search
+						? new RegExp(`<LastName>.*${split_author_name[split_author_name.length - 1]}</LastName>.*<ForeName>${first_name}.*</ForeName>`)
+						: new RegExp(`${first_name} *(${split_author_name.join('|')})|(${split_author_name.join('|')}) *${first_name}`);
+					}
 
 					if (is_pubmed_search) {
-						let reg = new RegExp(`<LastName>${split_author_name[1]}</LastName>.*<ForeName>${split_author_name[0]}</ForeName>`);
 						if (reg.test(elem.parentNode.parentNode.innerHTML)) {
 							parent_elem = elem.parentNode.parentNode;
 						}
 					} else {
-						let reg = new RegExp(`${split_author_name[0]} *${split_author_name[1]}|${split_author_name[1]} *${split_author_name[0]}`);
 						if (reg.test(elem.parentNode.innerHTML)) {
 							parent_elem = elem.parentNode;
 						} else if (reg.test(elem.parentNode.parentNode.innerHTML)) {
@@ -200,6 +192,7 @@ splice_ids_array = (arr) => {
 	let split_arr = []
 
 	let size = 20; // TODO: check performance difference and change accordingly
+	// TODO: possibly add as a variable to UI, numbers input (possibly have a max of 50-100?
 	for (let i = 0; i < arr.length; i += size) {
 		const chunk = arr.slice(i, i + size);
 		split_arr.push(chunk);
@@ -249,6 +242,7 @@ get_mail_line = (mail, parent_elem, id) => {
 		<td>${truncate_details_text(parent_elem.innerHTML.replace(mail.innerHTML, ''))}</td>
 		<td>${mail.innerHTML}</td>
 	</tr>`;
+	// TODO: possibly wrap '@' sign with <b></b>?
 };
 
 // disable find button while fetching mails, re-enable on completion or error
