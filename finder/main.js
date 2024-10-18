@@ -9,7 +9,7 @@ is_pubmed_search = false; // global pubmed db switch, only gets assigned in sear
 initial_binds = () => {
 	document.getElementById('author').addEventListener('keypress', (e) => input_enter_bind(e));
 	document.getElementById('extra').addEventListener('keypress', (e) => input_enter_bind(e));
-	display_results('tips', '❗ PubMed search is temporarily disabled.');
+	display_results('tips', 'Reversing name order might get more results.');
 };
 
 // bind enter key to search for initial_binds()
