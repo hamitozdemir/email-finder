@@ -9,7 +9,9 @@ is_pubmed_search = false; // global pubmed db switch, only gets assigned in sear
 initial_binds = () => {
 	document.getElementById('author').addEventListener('keypress', (e) => input_enter_bind(e));
 	document.getElementById('extra').addEventListener('keypress', (e) => input_enter_bind(e));
+	window.addEventListener('keyup', (e) => input_focus_bind(e))
 	display_results('tips', 'Reversing name order might get more results.');
+	input_focus_author();
 };
 
 // bind enter key to search for initial_binds()
@@ -19,6 +21,17 @@ input_enter_bind = (e) => {
 		search();
 	}
 };
+
+input_focus_bind = (e) => {
+	var type = e.target.getAttribute('type');
+	if (type != 'text') {
+		if (e.keyCode == 191) { // /
+			input_focus_author();
+		}
+	}
+};
+
+input_focus_author = () => document.getElementById('author').focus();
 
 // reverse name order in author input field (only 2-word names)
 reverse = () => {
