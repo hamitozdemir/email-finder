@@ -116,9 +116,11 @@ fetch_mails = (strung_ids) => {
 
 		let article_id_mails_list_ids = [];
 		let article_id_mails_list_mails = [];
+		let article_id_mails_list_years = [];
 		articles_list.forEach(article => {
 			let id = '';
 			let mails = [];
+			let year = Array.from(article.getElementsByTagName(is_pubmed_search ? 'Year' : 'year'))[0].innerHTML;
 			if (is_pubmed_search) {
 				id = Array.from(article.getElementsByTagName('PMID'))[0].innerHTML;
 				let affiliations_list = Array.from(article.getElementsByTagName('Affiliation'));
@@ -134,10 +136,11 @@ fetch_mails = (strung_ids) => {
 			// FIXME: could probably instead use a dictionary?
 			article_id_mails_list_ids.push(id);
 			article_id_mails_list_mails.push(mails);
+			article_id_mails_list_years.push(year);
 		});
 
 		let output = `<table class='results-table'>
-		<tr><th>ID</th><th>Details</th><th>Mail</th></tr>
+		<tr><th>Year</th><th>ID</th><th>Details</th><th>Mail</th></tr>
 		`;
 		let empty_output = output; // compare for empty output lines and display 'no author mail' if no change is found (i.e. additions of mail lines)
 
@@ -173,17 +176,18 @@ fetch_mails = (strung_ids) => {
 						}
 					}
 					if (parent_elem) {
-						output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
+						output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i], article_id_mails_list_years[i]);
 					}
 				} else {
 					parent_elem = is_pubmed_search ? elem.parentNode.parentNode : elem.parentNode; // decent compromise to get some details in? trying to get parent's parent instead gets a ton of unnecessary text in to display, this only displays the person's name most of the time, but yeah, somewhat of a compromise
-					output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i]);
+					output += get_mail_line(elem, parent_elem, article_id_mails_list_ids[i], article_id_mails_list_years[i]);
 				}
 			});
 		};
 
 		if (empty_output == output) {
 			output += `<tr class='mail-line'>
+				<td></td>
 				<td></td>
 				<td class='grayed-mail'>No author mail found, there may be non-author mail(s).</td>
 				<td></td>
@@ -253,12 +257,13 @@ update_mail_ids_related_ui_elems = () => {
 };
 
 // args, mail: email object, parent_elem; the parent object that has the current author's name in parent or parent's parent or parent's parent's parent, id: pmc/pubmed id of the article
-get_mail_line = (mail, parent_elem, id) => {
+get_mail_line = (mail, parent_elem, id, year) => {
 	// TODO: perhaps add #full-view-affiliation-1 anchor for pubmed links?
 	let url = is_pubmed_search 
 		? `https://pubmed.ncbi.nlm.nih.gov/${id}/' target='_blank`
 		: `https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${id}/' target='_blank`;
 	return `<tr class='mail-line'>
+		<td>${year}</td>
 		<td><a href='${url}'>${id}</a></td>
 		<td>${truncate_details_text(parent_elem.innerHTML.replace(mail.innerHTML, ''))}</td>
 		<td>${mail.innerHTML}</td>
