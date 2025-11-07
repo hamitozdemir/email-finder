@@ -274,7 +274,7 @@ get_mail_line = (mail, parent_elem, id, year) => {
 	// TODO: perhaps add #full-view-affiliation-1 anchor for pubmed links?
 	let url = is_pubmed_search 
 		? `https://pubmed.ncbi.nlm.nih.gov/${id}/' target='_blank`
-		: `https://www.ncbi.nlm.nih.gov/pmc/articles/PMC${id}/' target='_blank`;
+		: `https://www.ncbi.nlm.nih.gov/pmc/articles/${id}/' target='_blank`;
 	return `<tr class='mail-line'>
 		<td>${year}</td>
 		<td><a href='${url}'>${id}</a></td>
